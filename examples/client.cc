@@ -2516,7 +2516,7 @@ SSL_CTX *create_ssl_ctx() {
 } // namespace
 
 namespace {
-int run(Client &c, const char *addr, const char *port, const char *latency, const char *losses) {
+int run(Client &c, const char *addr, const char *port, const char *latency, const char *losses, const char *bytes) {
 	Address remote_addr, local_addr;
 
 	// jalmeida - start
@@ -2555,10 +2555,11 @@ int run(Client &c, const char *addr, const char *port, const char *latency, cons
 
 	ev_run(EV_DEFAULT, 0);
 
-	auto rate = (c.get_bytes() * 8.0f * 1000.0f) / (1024.0f * 1024.0f * (c.get_stop_time() - c.get_start_time()));
+	auto nbytes = static_cast<int64_t>( bytes );
+	auto rate = (nbytes * 8.0f * 1000.0f) / (1024.0f * 1024.0f * (c.get_stop_time() - c.get_start_time()));
 	std::cout << "latency: " << std::string(latency) << "\t loss_percentage: " << std::string(losses) << "\t start: "
-			  << c.get_start_time() << "\t stop: " << c.get_stop_time() << "\t bytes: " << c.get_bytes() << "\t rate: "
-			  << rate << std::endl;
+			  << c.get_start_time() << "\t stop: " << c.get_stop_time() << "\t bytes: " << bytes << "\t rate: " << rate
+			  << std::endl;
 
 	return 0;
 }
@@ -2865,6 +2866,7 @@ int main(int argc, char **argv) {
 	auto uri = argv[optind++];
 	auto latency = argv[optind++];
 	auto losses = argv[optind++];
+	auto bytes = argv[optind++];
 
 	if (parse_uri(uri) != 0) {
 		std::cerr << "Could not parse URI " << uri << std::endl;
@@ -2890,7 +2892,7 @@ int main(int argc, char **argv) {
 
 	Client c(EV_DEFAULT, ssl_ctx);
 
-	if (run(c, addr, port, latency, losses) != 0) {
+	if (run(c, addr, port, latency, losses, bytes) != 0) {
 		exit(EXIT_FAILURE);
 	}
 
