@@ -2555,7 +2555,7 @@ int run(Client &c, const char *addr, const char *port, const char *latency, cons
 
 	ev_run(EV_DEFAULT, 0);
 
-	auto nbytes = reinterpret_cast<int64_t>( bytes );
+	auto nbytes = std::stoll(std::string(bytes));
 	auto rate = (nbytes * 8.0f * 1000.0f) / (1024.0f * 1024.0f * (c.get_stop_time() - c.get_start_time()));
 	std::cout << "latency: " << std::string(latency) << "\t loss_percentage: " << std::string(losses) << "\t start: "
 			  << c.get_start_time() << "\t stop: " << c.get_stop_time() << "\t bytes: " << bytes << "\t rate: " << rate
