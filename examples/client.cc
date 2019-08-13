@@ -2516,11 +2516,12 @@ SSL_CTX *create_ssl_ctx() {
 } // namespace
 
 namespace {
-int run(Client &c, const char *addr, const char *port, const char *latency, const char *losses, const char *bytes) {
+int run(
+	Client &c, const char *addr, const char *port, const char *latency, const char *losses, const char *bytes,
+	const char *congestion_control) {
 	Address remote_addr, local_addr;
 
-	// jalmeida - start
-	//std::cout << "start: " << getTime() << std::endl;
+	int zerortt = -1;
 	c.set_start_time(getTime());
 
 	auto fd = create_sock(remote_addr, addr, port);
@@ -2541,9 +2542,11 @@ int run(Client &c, const char *addr, const char *port, const char *latency, cons
 		ngtcp2_transport_params params;
 		if (read_transport_params(config.tp_file, &params) != 0) {
 			std::cerr << "Could not read transport parameters from " << config.tp_file << std::endl;
+			zerortt = 0;
 		} else {
 			ngtcp2_conn_set_early_remote_transport_params(c.conn(), &params);
 			c.make_stream_early();
+			zerortt = 1;
 		}
 	}
 
@@ -2559,7 +2562,7 @@ int run(Client &c, const char *addr, const char *port, const char *latency, cons
 	auto rate = (nbytes * 8.0f * 1000.0f) / (1024.0f * 1024.0f * (c.get_stop_time() - c.get_start_time()));
 	std::cout << "latency: " << std::string(latency) << "\t loss_percentage: " << std::string(losses) << "\t start: "
 			  << c.get_start_time() << "\t stop: " << c.get_stop_time() << "\t bytes: " << bytes << "\t rate: " << rate
-			  << std::endl;
+			  << "\tcongestion_control: " << std::string(congestion_control) << "\t0-rtt: " << zerortt << std::endl;
 
 	return 0;
 }
@@ -2892,7 +2895,7 @@ int main(int argc, char **argv) {
 
 	Client c(EV_DEFAULT, ssl_ctx);
 
-	if (run(c, addr, port, latency, losses, bytes) != 0) {
+	if (run(c, addr, port, latency, losses, bytes, "ngtcp") != 0) {
 		exit(EXIT_FAILURE);
 	}
 
