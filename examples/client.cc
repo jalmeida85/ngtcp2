@@ -2561,7 +2561,7 @@ int run(
 	auto nbytes = std::atof(bytes);
 	auto rate = (nbytes * 8.0f * 1000.0f) / (1024.0f * 1024.0f * (c.get_stop_time() - c.get_start_time()));
 	std::cout << "ngtcp2\t " << std::string(congestion_control) << "\t " << zerortt  << "\t " << std::string(latency) << "\t " << std::string(losses) << "\t "
-			  << c.get_start_time() << "\t " << c.get_stop_time() << "\t " << bytes << "\t " << rate << "\t quic_benchmark" <<
+			  << c.get_start_time() << "\t " << c.get_stop_time() << "\t " << bytes << "\t " << rate << "\t quic_benchmark"
 			  << std::endl;
 
 	return 0;
